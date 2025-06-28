@@ -38,7 +38,6 @@ export function DataProvider({ children }) {
       setIsLoading(true);
       setError(null);
       
-      // Create FormData to send data and image
       const formData = new FormData();
       formData.append('name', itemData.name);
       formData.append('category', itemData.category);
@@ -50,7 +49,7 @@ export function DataProvider({ children }) {
       
       const res = await fetch(config.API_URL + '/api/items', {
         method: 'POST',
-        body: formData, // Don't set Content-Type, let the browser set it automatically
+        body: formData,
       });
       
       if (!res.ok) {
@@ -60,13 +59,13 @@ export function DataProvider({ children }) {
       
       const newItem = await res.json();
       
-      // Update the items list with the new item
       setAllItems(prev => [...prev, newItem]);
       setFilteredItems(prev => [...prev, newItem]);
+      setTotalItems(prev => prev + 1);
+      setPagesCache({});
       
       return newItem;
     } catch (error) {
-      // Only set error if it's a real network or server error
       if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
         setError('Network error: Unable to connect to server');
       } else {
@@ -93,7 +92,6 @@ export function DataProvider({ children }) {
   }, [allItems]);
 
   const fetchItemsPage = useCallback(async (page = 1, limit = 10, query = "") => {
-    // If searching, fetch all matching items (no pagination)
     if (query && query.trim() !== "") {
       try {
         setIsLoading(true);
@@ -101,7 +99,6 @@ export function DataProvider({ children }) {
         let url = `${config.API_URL}/api/items?q=${encodeURIComponent(query)}`;
         const res = await fetch(url);
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-        // Support both array and object (compatibility)
         const json = await res.json();
         const items = Array.isArray(json) ? json : (json.items || []);
         setFilteredItems(items);
@@ -114,7 +111,7 @@ export function DataProvider({ children }) {
       }
       return;
     }
-    // Normal pagination when not searching
+    
     const cacheKey = `${page}-${limit}-${query}`;
     if (pagesCache[cacheKey]) {
       setFilteredItems(pagesCache[cacheKey]);
@@ -138,7 +135,6 @@ export function DataProvider({ children }) {
     }
   }, [pagesCache]);
 
-  // Clear pages cache (used when clearing search)
   const clearPagesCache = useCallback(() => {
     setPagesCache({});
   }, []);
