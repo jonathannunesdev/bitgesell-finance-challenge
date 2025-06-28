@@ -10,7 +10,6 @@ export function DataProvider({ children }) {
   const [error, setError] = useState(null);
   const [pagesCache, setPagesCache] = useState({});
   const [totalItems, setTotalItems] = useState(0);
-  const [totalPages, setTotalPages] = useState(1);
 
   const fetchItems = useCallback(async () => {
     try {
@@ -103,7 +102,6 @@ export function DataProvider({ children }) {
         const items = Array.isArray(json) ? json : (json.items || []);
         setFilteredItems(items);
         setTotalItems(items.length);
-        setTotalPages(1);
       } catch (error) {
         setError(error.message);
       } finally {
@@ -126,7 +124,6 @@ export function DataProvider({ children }) {
       const json = await res.json();
       setFilteredItems(json.items);
       setTotalItems(json.total);
-      setTotalPages(json.totalPages);
       setPagesCache(prev => ({ ...prev, [cacheKey]: json.items }));
     } catch (error) {
       setError(error.message);
@@ -150,7 +147,6 @@ export function DataProvider({ children }) {
       isLoading, 
       error,
       totalItems,
-      totalPages,
       clearPagesCache
     }}>
       {children}

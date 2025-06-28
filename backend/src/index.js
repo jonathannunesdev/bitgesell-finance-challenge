@@ -4,7 +4,8 @@ const morgan = require('morgan');
 const itemsRouter = require('./routes/items');
 const statsRouter = require('./routes/stats');
 const cors = require('cors');
-const { getCookie, notFound } = require('./middleware/errorHandler');
+const { notFound } = require('./middleware/errorHandler');
+const { logger, errorLogger } = require('./middleware/logger');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -20,7 +21,10 @@ app.use(cors({
 // Basic middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(morgan('dev'));
+
+// Logging middleware - use both Morgan and custom logger
+app.use(morgan('dev')); // Morgan for basic HTTP logging
+app.use(logger); // Custom logger for detailed request/response logging
 
 // Serve static files from frontend public folder
 app.use('/imgs', express.static(path.join(__dirname, '../../frontend/public/imgs')));
@@ -31,6 +35,9 @@ app.use('/api/stats', statsRouter);
 
 // Not Found
 app.use('*', notFound);
+
+// Error logging middleware
+app.use(errorLogger);
 
 // Global error handler middleware
 app.use((error, req, res, next) => {
@@ -46,6 +53,4 @@ app.use((error, req, res, next) => {
   });
 });
 
-getCookie();
-
-app.listen(port, () => console.log('Backend running on http://localhost:' + port));
+app.listen(port, () => console.log(`[${new Date().toISOString()}] Backend running on http://localhost:${port}`));

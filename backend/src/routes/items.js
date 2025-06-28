@@ -66,6 +66,8 @@ async function writeData(data) {
 // GET /api/items
 router.get('/', async (req, res, next) => {
   try {
+    console.log(`[${new Date().toISOString()}] Fetching items with params:`, req.query);
+    
     const data = await readData();
     const { limit, q, page } = req.query;
     let results = data;
@@ -78,6 +80,7 @@ router.get('/', async (req, res, next) => {
         (item.category && item.category.toLowerCase().includes(searchTerm)) ||
         (item.price && item.price.toString().includes(searchTerm))
       );
+      console.log(`[${new Date().toISOString()}] Search for "${q}" returned ${results.length} results`);
     }
 
     let total = results.length;
@@ -87,6 +90,8 @@ router.get('/', async (req, res, next) => {
     let end = start + limitNum;
     let paginated = results.slice(start, end);
 
+    console.log(`[${new Date().toISOString()}] Returning ${paginated.length} items (page ${pageNum}/${Math.ceil(total / limitNum)})`);
+
     res.json({
       items: paginated,
       total,
@@ -95,6 +100,7 @@ router.get('/', async (req, res, next) => {
       totalPages: Math.ceil(total / limitNum)
     });
   } catch (error) {
+    console.error(`[${new Date().toISOString()}] Error fetching items:`, error.message);
     next(error);
   }
 });
@@ -102,15 +108,22 @@ router.get('/', async (req, res, next) => {
 // GET /api/items/:id
 router.get('/:id', async (req, res, next) => {
   try {
+    const itemId = parseInt(req.params.id);
+    console.log(`[${new Date().toISOString()}] Fetching item with ID: ${itemId}`);
+    
     const data = await readData();
-    const item = data.find(i => i.id === parseInt(req.params.id));
+    const item = data.find(i => i.id === itemId);
     if (!item) {
+      console.log(`[${new Date().toISOString()}] Item with ID ${itemId} not found`);
       const err = new Error('Item not found');
       err.status = 404;
       throw err;
     }
+    
+    console.log(`[${new Date().toISOString()}] Successfully fetched item: ${item.name}`);
     res.json(item);
   } catch (error) {
+    console.error(`[${new Date().toISOString()}] Error fetching item ${req.params.id}:`, error.message);
     next(error);
   }
 });
@@ -118,8 +131,16 @@ router.get('/:id', async (req, res, next) => {
 // POST /api/items
 router.post('/', upload.single('image'), async (req, res, next) => {
   try {
+    console.log(`[${new Date().toISOString()}] Creating new item:`, {
+      name: req.body.name,
+      category: req.body.category,
+      price: req.body.price,
+      hasImage: !!req.file
+    });
+
     // Check if required fields are present
     if (!req.body.name || !req.body.category || !req.body.price) {
+      console.log(`[${new Date().toISOString()}] Validation failed: Missing required fields`);
       return res.status(400).json({ 
         error: 'Missing required fields: name, category, and price are required' 
       });
@@ -135,6 +156,7 @@ router.post('/', upload.single('image'), async (req, res, next) => {
 
     // Validate if price is a valid number
     if (isNaN(itemData.price) || itemData.price <= 0) {
+      console.log(`[${new Date().toISOString()}] Validation failed: Invalid price ${req.body.price}`);
       return res.status(400).json({ 
         error: 'Price must be a positive number' 
       });
@@ -144,6 +166,7 @@ router.post('/', upload.single('image'), async (req, res, next) => {
     const validationResult = ItemSchema.safeParse(itemData);
     
     if (!validationResult.success) {
+      console.log(`[${new Date().toISOString()}] Zod validation failed:`, validationResult.error.errors);
       return res.status(400).json({ 
         error: 'Validation failed', 
         details: validationResult.error.errors 
@@ -157,9 +180,11 @@ router.post('/', upload.single('image'), async (req, res, next) => {
     data.push(validatedItem);
     
     await writeData(data);
+    
+    console.log(`[${new Date().toISOString()}] Successfully created item: ${validatedItem.name} (ID: ${validatedItem.id})`);
     res.status(201).json(validatedItem);
   } catch (error) {
-    console.error('Error in POST /api/items:', error);
+    console.error(`[${new Date().toISOString()}] Error creating item:`, error.message);
     next(error);
   }
 });

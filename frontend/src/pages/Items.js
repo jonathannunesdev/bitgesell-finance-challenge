@@ -3,7 +3,6 @@ import {
   TextField,
   Typography,
   Box,
-  Pagination,
   CircularProgress,
   Alert,
   Card,
@@ -46,13 +45,11 @@ function Items() {
     isLoading,
     error,
     totalItems,
-    totalPages,
     clearPagesCache,
   } = useData();
 
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const isTablet = useMediaQuery(theme.breakpoints.down("md"));
 
   const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,31 +65,6 @@ function Items() {
   const fileInputRef = useRef();
   const [itemsPerPage, setItemsPerPage] = useState(4);
   const [containerRef, setContainerRef] = useState(null);
-
-  // Calculate grid dimensions for virtualization
-  const gridConfig = useMemo(() => {
-    const columns = isMobile ? 1 : 2;
-    const gap = 24;
-    const padding = 24;
-
-    const containerWidth = containerRef?.clientWidth || window.innerWidth;
-    const availableWidth = containerWidth - padding * 2;
-    const columnWidth = Math.floor(
-      (availableWidth - gap * (columns - 1)) / columns
-    );
-    const rowHeight = 520;
-
-    return {
-      columns,
-      columnWidth,
-      rowHeight,
-      gap,
-      containerWidth: availableWidth,
-      totalWidth: containerWidth,
-    };
-  }, [isMobile, containerRef?.clientWidth]);
-
-  const rows = Math.ceil(items.length / gridConfig.columns);
 
   useEffect(() => {
     fetchItemsPage(currentPage, itemsPerPage, searchQuery);
@@ -170,101 +142,6 @@ function Items() {
     setSearchQuery("");
     setCurrentPage(1);
     clearPagesCache();
-  };
-
-  // Virtualized item renderer
-  const ItemRenderer = ({ columnIndex, rowIndex, style }) => {
-    const itemIndex = rowIndex * gridConfig.columns + columnIndex;
-    const item = items[itemIndex];
-
-    if (!item) return null;
-
-    return (
-      <div
-        style={{
-          ...style,
-          paddingRight: gridConfig.gap,
-          paddingBottom: gridConfig.gap,
-        }}
-      >
-        <Card
-          sx={{
-            height: "100%",
-            display: "flex",
-            flexDirection: "column",
-            transition:
-              "transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out",
-            "&:hover": {
-              transform: "translateY(-4px)",
-              boxShadow: 4,
-            },
-          }}
-        >
-          <CardMedia
-            component="img"
-            height="400"
-            image={item.image || ""}
-            alt={item.name}
-            sx={{ objectFit: "cover", backgroundColor: "grey.100" }}
-          />
-          <CardContent sx={{ flexGrow: 1, p: 2 }}>
-            <Typography
-              variant="h6"
-              component="h3"
-              gutterBottom
-              sx={{ fontSize: "1.1rem", fontWeight: 600 }}
-            >
-              {item.name}
-            </Typography>
-            <Typography
-              variant="h5"
-              color="primary"
-              sx={{ fontWeight: 700, mb: 1 }}
-            >
-              ${item.price.toLocaleString()}
-            </Typography>
-            {item.description && (
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                sx={{
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  display: "-webkit-box",
-                  WebkitLineClamp: 2,
-                  WebkitBoxOrient: "vertical",
-                }}
-              >
-                {item.description}
-              </Typography>
-            )}
-          </CardContent>
-          <CardActions sx={{ p: 2, pt: 0 }}>
-            <Box display="flex" gap={1}>
-              <Tooltip title="View Details">
-                <IconButton
-                  component={Link}
-                  to={`/items/${item.id}`}
-                  color="primary"
-                  size="small"
-                  sx={{
-                    flex: 1,
-                    border: "1px solid",
-                    borderColor: "primary.main",
-                    "&:hover": {
-                      backgroundColor: "primary.main",
-                      color: "white",
-                    },
-                  }}
-                >
-                  <ViewIcon />
-                </IconButton>
-              </Tooltip>
-            </Box>
-          </CardActions>
-        </Card>
-      </div>
-    );
   };
 
   if (error) {

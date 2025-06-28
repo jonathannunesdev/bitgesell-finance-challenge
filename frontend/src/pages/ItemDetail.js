@@ -15,8 +15,6 @@ import {
 } from "@mui/material";
 import {
   ArrowBack,
-  AttachMoney,
-  Category,
   ShoppingCart as CartIcon,
   Favorite as FavoriteIcon,
 } from "@mui/icons-material";
