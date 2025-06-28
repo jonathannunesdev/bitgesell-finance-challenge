@@ -8097,11 +8097,6 @@ react-virtualized-auto-sizer@^1.0.26:
   resolved "https://registry.npmjs.org/react-virtualized-auto-sizer/-/react-virtualized-auto-sizer-1.0.26.tgz"
   integrity sha512-CblNyiNVw2o+hsa5/49NH2ogGxZ+t+3aweRvNSq7TVjDIlwk7ir4lencEg5HxHeSzwNarSkNkiu0qJSOXtxm5A==
 
-react-window-infinite-loader@^1.0.10:
-  version "1.0.10"
-  resolved "https://registry.npmjs.org/react-window-infinite-loader/-/react-window-infinite-loader-1.0.10.tgz"
-  integrity sha512-NO/csdHlxjWqA2RJZfzQgagAjGHspbO2ik9GtWZb0BY1Nnapq0auG8ErI+OhGCzpjYJsCYerqUlK6hkq9dfAAA==
-
 react-window@^1.8.11:
   version "1.8.11"
   resolved "https://registry.npmjs.org/react-window/-/react-window-1.8.11.tgz"
