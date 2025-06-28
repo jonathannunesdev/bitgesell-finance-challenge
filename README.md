@@ -82,6 +82,15 @@ npm start
 
 The frontend will run on `http://localhost:3000`
 
+**Important:**
+Before running the frontend, create a `.env` file inside the `frontend` folder with the following content:
+
+```
+REACT_APP_API_URL=http://localhost:3001
+```
+
+This is required for the frontend to connect to the backend API. The `.env` file is not included in the repository (it's in .gitignore).
+
 ## API Endpoints
 
 ### Items
