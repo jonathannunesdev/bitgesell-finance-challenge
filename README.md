@@ -1,58 +1,124 @@
-# Take‑Home Assessment
+# Bitgesell Finance - Item Management System
 
-Welcome, candidate! This project contains **intentional issues** that mimic real‑world scenarios.
-Your task is to refactor, optimize, and fix these problems.
+A full-stack web application for managing items with image upload capabilities, built with React frontend and Node.js backend.
 
-## Objectives
+## Features
 
-### 🔧 Backend (Node.js)
+- **Item Management**: Add, view, and search items with categories and prices
+- **Image Upload**: Upload images for items with automatic file handling
+- **Search & Filter**: Real-time search functionality across item names and categories
+- **Responsive Design**: Modern UI built with Material-UI components
+- **Pagination**: Efficient item display with pagination support
+- **Error Handling**: Comprehensive error handling and user feedback
 
-1. **Refactor blocking I/O**  
-   - `src/routes/items.js` uses `fs.readFileSync`. Replace with non‑blocking async operations.
+## Tech Stack
 
-2. **Performance**  
-   - `GET /api/stats` recalculates stats on every request. Cache results, watch file changes, or introduce a smarter strategy.
+### Frontend
+- **React** - UI framework
+- **Material-UI** - Component library
+- **React Router** - Navigation
+- **Context API** - State management
 
-3. **Testing**  
-   - Add **unit tests** (Jest) for items routes (happy path + error cases).
+### Backend
+- **Node.js** - Runtime environment
+- **Express.js** - Web framework
+- **Multer** - File upload handling
+- **Zod** - Data validation
+- **Morgan** - HTTP request logger
+- **CORS** - Cross-origin resource sharing
 
-### 💻 Frontend (React)
+## Project Structure
 
-1. **Memory Leak**  
-   - `Items.js` leaks memory if the component unmounts before fetch completes. Fix it.
+```
+├── backend/
+│   ├── src/
+│   │   ├── index.js          # Main server file
+│   │   ├── routes/
+│   │   │   ├── items.js      # Item management routes
+│   │   │   └── stats.js      # Statistics routes
+│   │   ├── middleware/
+│   │   │   ├── errorHandler.js
+│   │   │   └── logger.js
+│   │   └── utils/
+│   │       └── stats.js
+│   └── package.json
+├── frontend/
+│   ├── src/
+│   │   ├── pages/
+│   │   │   ├── App.js        # Main app component
+│   │   │   ├── Items.js      # Items list page
+│   │   │   └── ItemDetail.js # Item detail page
+│   │   ├── state/
+│   │   │   └── DataContext.js # Global state management
+│   │   ├── utils/
+│   │   │   └── config.js     # Configuration
+│   │   └── index.js
+│   └── package.json
+└── data/
+    └── items.json            # Data storage
+```
 
-2. **Pagination & Search**  
-   - Implement paginated list with server‑side search (`q` param). Contribute to both client and server.
+## Installation & Setup
 
-3. **Performance**  
-   - The list can grow large. Integrate **virtualization** (e.g., `react-window`) to keep UI smooth.
+### Prerequisites
+- Node.js (v14 or higher)
+- npm or yarn
 
-4. **UI/UX Polish**  
-   - Feel free to enhance styling, accessibility, and add loading/skeleton states.
-
-### 📦 What We Expect
-
-- Idiomatic, clean code with comments where necessary.
-- Solid error handling and edge‑case consideration.
-- Tests that pass via `npm test` in both frontend and backend.
-- A brief `SOLUTION.md` describing **your approach and trade‑offs**.
-
-## Quick Start
-
-node version: 18.XX
+### Backend Setup
 ```bash
-nvm install 18
-nvm use 18
-
-# Terminal 1
 cd backend
 npm install
 npm start
+```
 
-# Terminal 2
+The backend will run on `http://localhost:3001`
+
+### Frontend Setup
+```bash
 cd frontend
 npm install
 npm start
 ```
 
-> The frontend proxies `/api` requests to `http://localhost:3001`.
+The frontend will run on `http://localhost:3000`
+
+## API Endpoints
+
+### Items
+- `GET /api/items` - Get all items (supports query parameters: `q` for search, `limit` for pagination)
+- `GET /api/items/:id` - Get item by ID
+- `POST /api/items` - Create new item (multipart/form-data with image upload)
+
+### Stats
+- `GET /api/stats` - Get application statistics
+
+## Key Features Implemented
+
+1. **Error Handling**: Comprehensive error handling with proper HTTP status codes
+2. **File Upload**: Secure image upload with validation and unique naming
+3. **Data Validation**: Input validation using Zod schema
+4. **CORS Configuration**: Proper CORS setup for development
+5. **Search Functionality**: Real-time search across multiple fields
+6. **Responsive UI**: Mobile-friendly design with Material-UI
+7. **State Management**: Efficient state management using React Context
+
+## Recent Improvements
+
+- Fixed "Failed to fetch" error during item addition
+- Improved error handling and user feedback
+- Enhanced CORS configuration
+- Added comprehensive input validation
+- Translated all comments to English
+- Optimized file upload handling
+
+## Development
+
+The project includes:
+- Hot reloading for development
+- Proper error logging
+- Development-friendly CORS settings
+- Comprehensive API documentation
+
+## License
+
+This project is part of a technical assessment for Bitgesell Finance.
