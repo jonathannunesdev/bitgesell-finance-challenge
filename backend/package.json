@@ -10,8 +10,8 @@
     "clean": "rm -rf dist",
     "copy-files": "mkdir -p dist && cp -r src dist/ && cp package.json dist/",
     "lint": "echo 'Linting passed'",
-    "test": "jest",
-    "test:watch": "jest --watch",
+    "test": "jest --testPathIgnorePatterns=dist",
+    "test:watch": "jest --watch --testPathIgnorePatterns=dist",
     "production": "NODE_ENV=production node src/index.js"
   },
   "dependencies": {

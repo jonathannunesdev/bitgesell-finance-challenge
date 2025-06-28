@@ -33,12 +33,5 @@
     "category": "Furniture",
     "price": 1199,
     "image": "/imgs/desk.png"
-  },
-  {
-    "name": "teste",
-    "category": "Electronics",
-    "price": 22,
-    "image": "/imgs/image-1751127912387-549273479.png",
-    "id": 1751127912396
   }
 ]
