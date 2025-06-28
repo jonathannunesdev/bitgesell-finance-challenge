@@ -22,18 +22,23 @@ import {
   FormControl,
   InputLabel,
   Input,
+  TablePagination,
+  InputAdornment,
 } from "@mui/material";
 import {
   Add as AddIcon,
   Visibility as ViewIcon,
   AddPhotoAlternate as AddImageIcon,
+  Search as SearchIcon,
+  Clear as ClearIcon,
 } from "@mui/icons-material";
 import { useData } from "../state/DataContext";
 import { Link } from "react-router-dom";
 
 function Items() {
-  const { items, fetchItems, addItem, searchItems, isLoading, error } =
+  const { items, fetchItemsPage, addItem, isLoading, error, totalItems, totalPages, clearPagesCache } =
     useData();
+  const [searchInput, setSearchInput] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [openAddItem, setOpenAddItem] = useState(false);
@@ -45,50 +50,28 @@ function Items() {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const fileInputRef = useRef();
-  const itemsPerPage = 10;
+  const [itemsPerPage, setItemsPerPage] = useState(4);
 
   useEffect(() => {
-    let isMounted = true;
+    fetchItemsPage(currentPage, itemsPerPage, searchQuery);
+  }, [currentPage, itemsPerPage, searchQuery]);
 
-    const loadItems = async () => {
-      try {
-        if (isMounted) {
-          await fetchItems();
-        }
-      } catch (error) {
-        if (isMounted) {
-          console.error("Error fetching items:", error);
-        }
-      }
-    };
 
-    loadItems();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [fetchItems]);
-
-  // Handle search
-  const handleSearch = (e) => {
-    const query = e.target.value;
-    setSearchQuery(query);
-    searchItems(query);
+  const handleInputChange = (e) => {
+    setSearchInput(e.target.value);
+  };
+  const handleSearch = () => {
+    setSearchQuery(searchInput);
     setCurrentPage(1);
   };
-
-  // Calculate pagination
-  const totalPages = Math.ceil(items.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const endIndex = startIndex + itemsPerPage;
-  const currentItems = items.slice(startIndex, endIndex);
-
-  const handlePageChange = (event, page) => {
-    setCurrentPage(page);
+  const handleInputKeyDown = (e) => {
+    if (e.key === "Enter") {
+      handleSearch();
+    }
   };
 
   // Handle form field changes
-  const handleInputChange = (field, value) => {
+  const handleInputChangeForm = (field, value) => {
     setNewItem((prev) => ({
       ...prev,
       [field]: value,
@@ -166,6 +149,18 @@ function Items() {
     });
   };
 
+  const handleLimitChange = (e) => {
+    setItemsPerPage(Number(e.target.value));
+    setCurrentPage(1);
+  };
+
+  const handleClearSearch = () => {
+    setSearchInput("");
+    setSearchQuery("");
+    setCurrentPage(1);
+    clearPagesCache();
+  };
+
   if (error) {
     return (
       <Alert severity="error" sx={{ mb: 2 }}>
@@ -182,10 +177,25 @@ function Items() {
           fullWidth
           label="Search items..."
           variant="outlined"
-          value={searchQuery}
-          onChange={handleSearch}
+          value={searchInput}
+          onChange={handleInputChange}
+          onKeyDown={handleInputKeyDown}
+          InputProps={{
+            endAdornment: (
+              <InputAdornment position="end">
+                {searchInput ? (
+                  <IconButton onClick={handleClearSearch} aria-label="clear search">
+                    <ClearIcon />
+                  </IconButton>
+                ) : (
+                  <IconButton onClick={handleSearch} aria-label="search">
+                    <SearchIcon />
+                  </IconButton>
+                )}
+              </InputAdornment>
+            ),
+          }}
         />
-
         <Button
           variant="contained"
           color="primary"
@@ -212,7 +222,7 @@ function Items() {
               label="Name"
               fullWidth
               value={newItem.name}
-              onChange={(e) => handleInputChange("name", e.target.value)}
+              onChange={(e) => handleInputChangeForm("name", e.target.value)}
             />
 
             <FormControl fullWidth>
@@ -220,7 +230,7 @@ function Items() {
               <Select
                 value={newItem.category}
                 label="Category"
-                onChange={(e) => handleInputChange("category", e.target.value)}
+                onChange={(e) => handleInputChangeForm("category", e.target.value)}
               >
                 <MenuItem value="Electronics">Electronics</MenuItem>
                 <MenuItem value="Furniture">Furniture</MenuItem>
@@ -232,7 +242,7 @@ function Items() {
               fullWidth
               type="number"
               value={newItem.price}
-              onChange={(e) => handleInputChange("price", e.target.value)}
+              onChange={(e) => handleInputChangeForm("price", e.target.value)}
             />
 
             <Box display="flex" alignItems="center" gap={2}>
@@ -290,7 +300,7 @@ function Items() {
         </Box>
       )}
 
-      {!isLoading && currentItems.length > 0 && (
+      {!isLoading && items.length > 0 && (
         <>
           <Box
             sx={{
@@ -303,7 +313,7 @@ function Items() {
               width: "100%",
             }}
           >
-            {currentItems.map((item) => (
+            {items.map((item) => (
               <Card
                 key={item.id}
                 sx={{
@@ -397,28 +407,32 @@ function Items() {
               </Card>
             ))}
           </Box>
-
-          {totalPages > 1 && (
-            <Box display="flex" justifyContent="center" mt={3}>
-              <Pagination
-                count={totalPages}
-                page={currentPage}
-                onChange={handlePageChange}
-                color="primary"
-              />
-            </Box>
-          )}
-
-          <Box textAlign="center" mt={2}>
-            <Typography variant="body2" color="text.secondary">
-              Showing {currentItems.length} of {items.length} items
-              {searchQuery && ` for "${searchQuery}"`}
-            </Typography>
+          <Box display="flex" justifyContent="center" alignItems="center" mt={3}>
+            <TablePagination
+              component="div"
+              count={totalItems}
+              page={currentPage - 1}
+              onPageChange={(e, newPage) => setCurrentPage(newPage + 1)}
+              rowsPerPage={itemsPerPage}
+              onRowsPerPageChange={(e) => {
+                setItemsPerPage(parseInt(e.target.value, 10));
+                setCurrentPage(1);
+              }}
+              rowsPerPageOptions={[4, 6, 8, 10, 15, 20, 50]}
+              labelRowsPerPage="Per page:"
+              sx={{ minWidth: 350 }}
+            />
           </Box>
         </>
       )}
 
-      {!isLoading && currentItems.length === 0 && (
+      <Box textAlign="center" mt={2}>
+        <Typography variant="body2" color="text.secondary">
+          Showing {items.length} of {totalItems} items
+          {searchQuery && ` for "${searchQuery}"`}
+        </Typography>
+      </Box>
+      {!isLoading && items.length === 0 && (
         <Paper elevation={2} sx={{ p: 4, textAlign: "center" }}>
           <Typography variant="h6" color="text.secondary">
             {searchQuery

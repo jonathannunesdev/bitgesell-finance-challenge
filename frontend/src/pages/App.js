@@ -47,7 +47,8 @@ function App() {
                     textDecoration: 'none', 
                     color: 'inherit',
                     display: 'flex',
-                    alignItems: 'center'
+                    alignItems: 'center',
+                    cursor: 'pointer'
                   }}
                 >
                   Bitgesell Finance

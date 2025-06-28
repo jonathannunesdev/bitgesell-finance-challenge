@@ -8,6 +8,9 @@ export function DataProvider({ children }) {
   const [filteredItems, setFilteredItems] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [pagesCache, setPagesCache] = useState({});
+  const [totalItems, setTotalItems] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
 
   const fetchItems = useCallback(async () => {
     try {
@@ -89,6 +92,57 @@ export function DataProvider({ children }) {
     setFilteredItems(filtered);
   }, [allItems]);
 
+  const fetchItemsPage = useCallback(async (page = 1, limit = 10, query = "") => {
+    // If searching, fetch all matching items (no pagination)
+    if (query && query.trim() !== "") {
+      try {
+        setIsLoading(true);
+        setError(null);
+        let url = `${config.API_URL}/api/items?q=${encodeURIComponent(query)}`;
+        const res = await fetch(url);
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        // Support both array and object (compatibility)
+        const json = await res.json();
+        const items = Array.isArray(json) ? json : (json.items || []);
+        setFilteredItems(items);
+        setTotalItems(items.length);
+        setTotalPages(1);
+      } catch (error) {
+        setError(error.message);
+      } finally {
+        setIsLoading(false);
+      }
+      return;
+    }
+    // Normal pagination when not searching
+    const cacheKey = `${page}-${limit}-${query}`;
+    if (pagesCache[cacheKey]) {
+      setFilteredItems(pagesCache[cacheKey]);
+      return;
+    }
+    try {
+      setIsLoading(true);
+      setError(null);
+      let url = `${config.API_URL}/api/items?page=${page}&limit=${limit}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+      const json = await res.json();
+      setFilteredItems(json.items);
+      setTotalItems(json.total);
+      setTotalPages(json.totalPages);
+      setPagesCache(prev => ({ ...prev, [cacheKey]: json.items }));
+    } catch (error) {
+      setError(error.message);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagesCache]);
+
+  // Clear pages cache (used when clearing search)
+  const clearPagesCache = useCallback(() => {
+    setPagesCache({});
+  }, []);
+
   return (
     <DataContext.Provider value={{ 
       items: filteredItems,
@@ -96,8 +150,12 @@ export function DataProvider({ children }) {
       fetchItems, 
       addItem,
       searchItems,
+      fetchItemsPage,
       isLoading, 
-      error 
+      error,
+      totalItems,
+      totalPages,
+      clearPagesCache
     }}>
       {children}
     </DataContext.Provider>
